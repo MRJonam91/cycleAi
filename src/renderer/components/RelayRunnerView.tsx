@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { TaskItem, ExecutionLogEvent, SpecLockData } from '../../shared/types';
-import { Play, Pause, CheckCircle2, Clock, AlertTriangle, Terminal, Layers, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { Play, Pause, CheckCircle2, Clock, AlertTriangle, Terminal, Layers, ArrowRight, ShieldCheck, Zap, Copy, Check } from 'lucide-react';
 
 interface RelayRunnerViewProps {
   tasks: TaskItem[];
@@ -24,10 +24,27 @@ export const RelayRunnerView: React.FC<RelayRunnerViewProps> = ({
   onPause,
 }) => {
   const terminalEndRef = useRef<HTMLDivElement | null>(null);
+  const [logFilter, setLogFilter] = useState<'ALL' | 'PAUSE' | 'HANDOFF' | 'SUCCESS'>('ALL');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
+
+  const handleCopyLogs = () => {
+    const text = logs.map(l => `[${l.timestamp}] [${l.providerId}] [${l.type}] ${l.message}`).join('\n');
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const filteredLogs = logs.filter(l => {
+    if (logFilter === 'ALL') return true;
+    if (logFilter === 'PAUSE') return l.type === 'PAUSE' || l.type === 'RESUME';
+    if (logFilter === 'HANDOFF') return l.type === 'HANDOFF';
+    if (logFilter === 'SUCCESS') return l.type === 'SUCCESS';
+    return true;
+  });
 
   const getComplexityBadge = (c: TaskItem['complexity']) => {
     switch (c) {
@@ -196,25 +213,55 @@ export const RelayRunnerView: React.FC<RelayRunnerViewProps> = ({
         <div className="lg:col-span-7 flex flex-col h-[610px] rounded-2xl bg-black/90 border border-border overflow-hidden">
           {/* Terminal Titlebar */}
           <div className="px-4 py-2.5 bg-slate-900 border-b border-border flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-300">
-              <Terminal className="w-4 h-4 text-emerald-400" />
-              <span>CycleAI Execution Multiplexer</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 text-xs font-mono text-slate-300">
+                <Terminal className="w-4 h-4 text-emerald-400" />
+                <span>Multiplexer</span>
+              </div>
+
+              {/* Log Filters */}
+              <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-slate-800 text-[10px]">
+                {(['ALL', 'PAUSE', 'HANDOFF', 'SUCCESS'] as const).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setLogFilter(f)}
+                    className={`px-2 py-0.5 rounded font-mono transition-colors ${
+                      logFilter === f ? 'bg-primary text-white font-bold' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {f === 'PAUSE' ? 'PAUSE/RESUME' : f}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-700" />
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-700" />
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCopyLogs}
+                className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 transition-colors"
+                title="Copia tutti i log"
+              >
+                {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>{copied ? 'Copiato' : 'Copia Log'}</span>
+              </button>
+              <div className="flex items-center gap-1.5 ml-1">
+                <div className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+                <div className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+                <div className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+              </div>
             </div>
           </div>
 
           {/* Logs View */}
           <div className="flex-1 p-4 font-mono text-xs overflow-y-auto space-y-2 select-text">
-            {logs.length === 0 ? (
+            {filteredLogs.length === 0 ? (
               <div className="text-slate-500 italic py-10 text-center">
-                In attesa di avvio. Le decisioni e i log di compilazione/verifica appariranno qui in tempo reale.
+                {logs.length === 0
+                  ? 'In attesa di avvio. Le decisioni e i log di compilazione/verifica appariranno qui in tempo reale.'
+                  : 'Nessun log corrisponde al filtro selezionato.'}
               </div>
             ) : (
-              logs.map(log => {
+              filteredLogs.map(log => {
                 let badgeClass = 'text-slate-400';
                 if (log.type === 'SUCCESS') badgeClass = 'text-emerald-400 font-bold';
                 if (log.type === 'WARN') badgeClass = 'text-amber-400 font-bold';

@@ -62,7 +62,12 @@ npm install
 npm run dev
 ```
 
-### 4. Compilazione
+### 4. Esecuzione Test Automatizzati
+```bash
+npm test
+```
+
+### 5. Compilazione
 ```bash
 npm run build
 ```

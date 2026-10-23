@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { ProviderId, TaskItem, ExecutionLogEvent, CycleAiSettings, ProviderSlotStatus } from '../../shared/types';
 import { QuotaEngine } from '../quota/quotaEngine';
 import { HandoffManager } from './handoffManager';
+import { ProcessRunner } from './processRunner';
 
 export class AutonomousScheduler extends EventEmitter {
   private quotaEngine: QuotaEngine;

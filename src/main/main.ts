@@ -3,12 +3,15 @@ import path from 'path';
 import { QuotaEngine } from './quota/quotaEngine';
 import { AutonomousScheduler } from './orchestrator/scheduler';
 import { InterviewEngine } from './orchestrator/interviewEngine';
+import { SessionWatcher } from './quota/sessionWatcher';
+import { ProjectStore } from './storage/projectStore';
 import { CycleAiSettings, SpecLockData, TaskItem, ProviderId, ExecutionLogEvent } from '../shared/types';
 
 let mainWindow: BrowserWindow | null = null;
 let powerBlockerId: number | null = null;
+let sessionWatcher: SessionWatcher | null = null;
 
-const initialSettings: CycleAiSettings = {
+const defaultSettings: CycleAiSettings = {
   prePauseThreshold: 90,
   autoResumeEnabled: true,
   enableMultiToolHandoff: true,
@@ -19,6 +22,9 @@ const initialSettings: CycleAiSettings = {
     antigravity: {},
   },
 };
+
+const persistentState = ProjectStore.loadState(defaultSettings);
+const initialSettings = persistentState.settings;
 
 const quotaEngine = new QuotaEngine(initialSettings);
 const scheduler = new AutonomousScheduler(quotaEngine, initialSettings);
@@ -162,12 +168,16 @@ ipcMain.handle('cycleai:lock-spec', async (_event, spec: SpecLockData) => {
   const compiled = InterviewEngine.compileSpecLock(spec);
   activeProject = compiled.specLock;
   tasks = compiled.tasks;
+  ProjectStore.recordProject(spec.targetFolder, activeProject, tasks, (scheduler as any).settings);
   broadcastState();
   return compiled;
 });
 
 ipcMain.handle('cycleai:start-execution', async (_event, folder: string, taskList: TaskItem[]) => {
   tasks = taskList;
+  if (activeProject) {
+    ProjectStore.recordProject(folder, activeProject, tasks, (scheduler as any).settings);
+  }
   scheduler.startExecution(folder, tasks);
   broadcastState();
   return true;
@@ -182,6 +192,12 @@ ipcMain.handle('cycleai:pause-execution', async () => {
 ipcMain.handle('cycleai:update-settings', async (_event, newSettings: CycleAiSettings) => {
   quotaEngine.updateSettings(newSettings);
   scheduler.updateSettings(newSettings);
+  ProjectStore.saveState({
+    version: '0.2.0-alpha',
+    settings: newSettings,
+    projectsHistory: ProjectStore.loadState(newSettings).projectsHistory,
+    lastActiveProjectFolder: activeProject?.targetFolder,
+  });
   broadcastState();
   return true;
 });
@@ -192,8 +208,21 @@ ipcMain.handle('cycleai:reset-slot', async (_event, providerId: ProviderId) => {
   return quotaEngine.getState();
 });
 
+ipcMain.handle('cycleai:get-history', async () => {
+  const loaded = ProjectStore.loadState((scheduler as any).settings);
+  return loaded.projectsHistory;
+});
+
 app.whenReady().then(async () => {
   await quotaEngine.refreshAll();
+
+  // Start live background watcher for sessions
+  sessionWatcher = new SessionWatcher(async () => {
+    await quotaEngine.refreshAll();
+    broadcastState();
+  });
+  sessionWatcher.startWatching();
+
   createWindow();
 
   app.on('activate', () => {
@@ -202,6 +231,9 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
+  if (sessionWatcher) {
+    sessionWatcher.stopWatching();
+  }
   if (process.platform !== 'darwin') {
     app.quit();
   }
