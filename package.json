@@ -1,0 +1,49 @@
+{
+  "name": "cycle-ai",
+  "version": "0.1.0",
+  "description": "Desktop orchestrator for AI generation projects maximizing subscription usage slots with pre-reset pause, auto-resume, and multi-tool hand-off",
+  "main": "dist-electron/main/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"cross-env WAIT_ON_WEB=true electron .\"",
+    "dev:renderer": "vite",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:renderer": "vite build",
+    "build": "npm run build:electron && npm run build:renderer",
+    "start": "electron dist-electron/main/main.js",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "ai",
+    "orchestrator",
+    "claude",
+    "codex",
+    "antigravity",
+    "rate-limit",
+    "desktop",
+    "windows",
+    "electron"
+  ],
+  "author": "MRJonam91",
+  "license": "MIT",
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.475.0",
+    "tailwind-merge": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^34.2.0",
+    "postcss": "^8.5.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  }
+}
