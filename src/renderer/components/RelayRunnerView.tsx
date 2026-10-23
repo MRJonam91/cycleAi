@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { TaskItem, ExecutionLogEvent, SpecLockData } from '../../shared/types';
-import { Play, Pause, CheckCircle2, Clock, AlertTriangle, Terminal, Layers, ArrowRight, ShieldCheck, Zap, Copy, Check } from 'lucide-react';
+import { Play, Pause, CheckCircle2, Clock, AlertTriangle, Terminal, Layers, ArrowRight, ShieldCheck, Zap, Copy, Check, Download } from 'lucide-react';
 
 interface RelayRunnerViewProps {
   tasks: TaskItem[];
@@ -133,14 +133,26 @@ export const RelayRunnerView: React.FC<RelayRunnerViewProps> = ({
               <span>Metti in Pausa</span>
             </button>
           ) : (
-            <button
-              onClick={onStart}
-              disabled={tasks.length === 0}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-colors disabled:opacity-50"
-            >
-              <Play className="w-4 h-4" />
-              <span>Avvia Esecuzione</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {tasks.length > 0 && (
+                <button
+                  onClick={() => (window as any).cycleAiAPI?.exportReport()}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surfaceHover hover:bg-slate-700/60 border border-border text-white text-xs font-semibold transition-colors"
+                  title="Esporta riepilogo in Markdown"
+                >
+                  <Download className="w-3.5 h-3.5 text-primary" />
+                  <span>Esporta Report</span>
+                </button>
+              )}
+              <button
+                onClick={onStart}
+                disabled={tasks.length === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-colors disabled:opacity-50"
+              >
+                <Play className="w-4 h-4" />
+                <span>Avvia Esecuzione</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

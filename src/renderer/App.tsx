@@ -198,8 +198,8 @@ export const App: React.FC = () => {
               <h1 className="text-base font-black tracking-tight text-white">
                 Cycle<span className="text-primary">AI</span>
               </h1>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-300 border border-purple-500/20 px-1.5 py-0.2 rounded">
-                Beta v0.3
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-1.5 py-0.2 rounded">
+                v1.0.0 Stable
               </span>
             </div>
             <p className="text-[10px] text-slate-400">

@@ -1,5 +1,6 @@
-import { app, BrowserWindow, ipcMain, dialog, powerSaveBlocker } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, powerSaveBlocker, Notification } from 'electron';
 import path from 'path';
+import fs from 'fs';
 import { QuotaEngine } from './quota/quotaEngine';
 import { AutonomousScheduler } from './orchestrator/scheduler';
 import { InterviewEngine } from './orchestrator/interviewEngine';
@@ -102,6 +103,22 @@ scheduler.on('log', (logEvent: ExecutionLogEvent) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('cycleai:log', logEvent);
   }
+
+  // Windows Desktop Notifications
+  if (Notification.isSupported()) {
+    if (logEvent.type === 'PAUSE') {
+      new Notification({
+        title: 'CycleAI — Pausa Pre-Reset (90%)',
+        body: logEvent.message,
+      }).show();
+    } else if (logEvent.type === 'RESUME') {
+      new Notification({
+        title: 'CycleAI — Auto-Resume Post-Reset',
+        body: logEvent.message,
+      }).show();
+    }
+  }
+
   broadcastState();
 });
 
@@ -126,6 +143,12 @@ scheduler.on('hibernation-ended', () => {
 });
 
 scheduler.on('completed', () => {
+  if (Notification.isSupported()) {
+    new Notification({
+      title: 'CycleAI — Progetto Completato! 🎉',
+      body: 'Tutti i micro-task atomici sono stati generati e verificati con successo.',
+    }).show();
+  }
   broadcastState();
 });
 
@@ -212,6 +235,54 @@ ipcMain.handle('cycleai:reset-slot', async (_event, providerId: ProviderId) => {
 ipcMain.handle('cycleai:get-history', async () => {
   const loaded = ProjectStore.loadState((scheduler as any).settings);
   return loaded.projectsHistory;
+});
+
+ipcMain.handle('cycleai:export-report', async () => {
+  if (!mainWindow) return { success: false };
+  const res = await dialog.showSaveDialog(mainWindow, {
+    title: 'Salva Report Esecuzione CycleAI',
+    defaultPath: `CycleAI_Project_Report_${Date.now()}.md`,
+    filters: [{ name: 'Markdown Document', extensions: ['md'] }],
+  });
+
+  if (res.canceled || !res.filePath) return { success: false };
+
+  const reportMarkdown = `# ⚡ CycleAI — Report Esecuzione Progetto (v1.0.0 Stable)
+**Data:** ${new Date().toLocaleString()}
+**Progetto:** ${activeProject?.projectName || 'N/A'}
+**Cartella Target:** \`${activeProject?.targetFolder || 'N/A'}\`
+**Obiettivo:** ${activeProject?.goalPrompt || 'N/A'}
+
+---
+
+## 1. Stato Micro-Task Atomici (${tasks.length})
+${tasks.map(t => `### [${t.id}] ${t.title}
+- **Stato:** ${t.status}
+- **Complessità:** ${t.complexity}
+- **Provider / Modello:** ${t.assignedProvider ? `${t.assignedProvider.toUpperCase()} (${t.assignedModel})` : 'Non assegnato'}
+- **Verifica:** \`${t.verifyCommand || 'N/A'}\`
+${t.logs.length > 0 ? `\n**Log Esecuzione:**\n\`\`\`\n${t.logs.join('\n')}\n\`\`\`` : ''}
+`).join('\n')}
+
+---
+
+## 2. Stato Consumo Slot Quota al Checkpoint
+${Object.entries(quotaEngine.getState()).map(([k, p]) => `- **${p.name}:** ${p.usedPercent.toFixed(1)}% usato (Reset alle ${p.resetAt ? new Date(p.resetAt).toLocaleTimeString() : 'N/A'})`).join('\n')}
+
+---
+
+## 3. Registro Eventi / Staffetta Multi-Tool
+\`\`\`
+${executionLogs.map(l => `[${l.timestamp}] [${l.providerId}] [${l.type}] ${l.message}`).join('\n')}
+\`\`\`
+`;
+
+  try {
+    fs.writeFileSync(res.filePath, reportMarkdown, 'utf-8');
+    return { success: true, filePath: res.filePath };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 });
 
 app.whenReady().then(async () => {

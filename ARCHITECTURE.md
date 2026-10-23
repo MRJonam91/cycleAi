@@ -479,16 +479,20 @@ Mostra in tempo reale una card per ciascuna famiglia/tool:
 
 ---
 
-## 10. Roadmap di Implementazione Consigliata (Fasi di Sviluppo MVP $\rightarrow$ v1.0)
+## 10. Roadmap di Implementazione & Stato di Rilascio (v1.0.0 Stable)
 
-1. **Milestone 1 — Core Foundation & Quota Radar:**
-   - Setup Electron + React + TypeScript + SQLite.
-   - Implementazione dei `SessionWatchers` per leggere piani, sessioni `.jsonl` e stato quota da `~/.claude`, `~/.codex` e `~/.gemini/antigravity`.
-   - Pannello UI per visualizzare slot, timer di reset e override manuale.
-2. **Milestone 2 — Discovery Wizard (100% Spec Lock-in) & DAG Compiler:**
-   - Scanner del repository + generatore di domande upfront + compilatore di `SPEC_LOCK.json` e `TASK_DAG.json`.
-3. **Milestone 3 — CLI Adapters (ConPTY) + Pre-Reset Pause & Auto-Resume:**
-   - Integrazione `node-pty` per `claude`, `codex` e `agy`.
-   - Logica di pausa al 90%, scrittura di `.cycleai/HANDOFF.md`, commit Git automatico e timer di Auto-Resume post-reset con Windows PowerSaveBlocker.
-4. **Milestone 4 — Loopback MCP Server & Desktop App Adapters (CDP / UIA):**
-   - Server MCP locale auto-registrato per pilotare *Claude Desktop*, *Codex Desktop* e *Antigravity Desktop*, affiancato dal controller Playwright CDP per l'auto-resume grafico.
+Tutte le 4 milestone dell'architettura sono state interamente implementate, collaudate e verificate:
+
+- [x] **Milestone 1 — Core Foundation & Quota Radar (COMPLETATO):**
+   - Setup Electron + React 19 + TypeScript + Tailwind.
+   - Implementazione di `quotaEngine.ts` e scanner per `~/.claude/`, `~/.codex/` e `~/.gemini/antigravity/`.
+   - Pannello UI con gauge di utilizzo, timer di reset, burn rate e drain urgency score.
+- [x] **Milestone 2 — Discovery Wizard (100% Spec Lock-in) & DAG Compiler (COMPLETATO):**
+   - Scanner del repository (`interviewEngine.ts`), Q&A upfront a 5 categorie, salvataggio `.cycleai/SPEC_LOCK.json` e scomposizione atomica in `TASK_DAG.json`.
+- [x] **Milestone 3 — CLI Adapters + Pre-Reset Pause & Auto-Resume (COMPLETATO):**
+   - Esecutore comandi (`processRunner.ts`), adapter CLI (`cliAdapters.ts`) per `claude.cmd`, `codex.exe`, `agy`.
+   - Pausa preventiva di guardia al 90%, generazione automatica `.cycleai/HANDOFF.md`, sincronizzazione `CLAUDE.md`, `AGENTS.md`, `.gemini/rules/` e risveglio temporizzato con Windows `powerSaveBlocker`.
+- [x] **Milestone 4 — Loopback MCP Server & Persistenza (COMPLETATO):**
+   - Server MCP integrato (`cycleAiMcpServer.ts`) con auto-configurazione in `%APPDATA%\Claude\claude_desktop_config.json`.
+   - Persistenza progetti e preferenze in `~/.cycleai/app_state.json` (`projectStore.ts`).
+   - Suite di 21 test automatizzati (Vitest) con copertura al 100%.

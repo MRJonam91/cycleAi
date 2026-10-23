@@ -12,6 +12,7 @@ export const api = {
   updateSettings: (settings: CycleAiSettings) => ipcRenderer.invoke('cycleai:update-settings', settings),
   resetSlot: (providerId: ProviderId) => ipcRenderer.invoke('cycleai:reset-slot', providerId),
   getHistory: () => ipcRenderer.invoke('cycleai:get-history'),
+  exportReport: () => ipcRenderer.invoke('cycleai:export-report'),
   onStateUpdate: (callback: (state: any) => void) => {
     const subscription = (_event: any, value: any) => callback(value);
     ipcRenderer.on('cycleai:state-update', subscription);

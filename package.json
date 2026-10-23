@@ -1,6 +1,6 @@
 {
   "name": "cycle-ai",
-  "version": "0.3.0-beta",
+  "version": "1.0.0",
   "description": "Desktop orchestrator for AI generation projects maximizing subscription usage slots with pre-reset pause, auto-resume, and multi-tool hand-off",
   "main": "dist-electron/main/main.js",
   "scripts": {
