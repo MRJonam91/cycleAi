@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProviderId, ProviderSlotStatus } from '../../shared/types';
 import { Clock, Zap, Flame, RefreshCw, AlertTriangle, CheckCircle, Sparkles, Server } from 'lucide-react';
 
@@ -16,6 +16,12 @@ export const QuotaRadarView: React.FC<QuotaRadarViewProps> = ({
   onResetSlot,
 }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -57,11 +63,12 @@ export const QuotaRadarView: React.FC<QuotaRadarViewProps> = ({
 
   const formatCountdown = (isoDate: string | null) => {
     if (!isoDate) return 'Nessun reset imminente';
-    const diffMs = new Date(isoDate).getTime() - Date.now();
+    const diffMs = new Date(isoDate).getTime() - now;
     if (diffMs <= 0) return 'Reset in corso ora';
     const hours = Math.floor(diffMs / 3600000);
     const minutes = Math.floor((diffMs % 3600000) / 60000);
-    return `${hours}h ${minutes}m al reset`;
+    const seconds = Math.floor((diffMs % 60000) / 1000);
+    return `${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s al reset`;
   };
 
   return (

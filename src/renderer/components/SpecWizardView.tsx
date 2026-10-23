@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SpecLockData, ClarifyingQuestion, TaskItem } from '../../shared/types';
-import { Folder, Play, CheckCircle2, FileCode, HelpCircle, Layers, ArrowRight, Lock } from 'lucide-react';
+import { Folder, Play, CheckCircle2, FileCode, HelpCircle, Layers, ArrowRight, Lock, History } from 'lucide-react';
 
 interface SpecWizardViewProps {
   onLockAndStart: (spec: SpecLockData) => void;
@@ -19,6 +19,15 @@ export const SpecWizardView: React.FC<SpecWizardViewProps> = ({
   const [questions, setQuestions] = useState<ClarifyingQuestion[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [step, setStep] = useState<'INPUT' | 'QUESTIONS' | 'PREVIEW'>('INPUT');
+  const [history, setHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    if ((window as any).cycleAiAPI?.getHistory) {
+      (window as any).cycleAiAPI.getHistory().then((list: any[]) => {
+        if (list && Array.isArray(list)) setHistory(list);
+      });
+    }
+  }, []);
 
   const handleBrowseFolder = async () => {
     const selected = await onSelectFolder();
@@ -88,6 +97,31 @@ export const SpecWizardView: React.FC<SpecWizardViewProps> = ({
       {/* Step 1: Input Goal & Target Directory */}
       {step === 'INPUT' && (
         <div className="p-6 rounded-2xl bg-surface border border-border space-y-5">
+          {history.length > 0 && (
+            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-border space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+                <History className="w-3.5 h-3.5 text-primary" />
+                <span>Progetti Recenti Salvati:</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {history.slice(0, 4).map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setTargetFolder(item.folder);
+                      if (item.goal) setGoalPrompt(item.goal);
+                    }}
+                    className="px-2.5 py-1.5 rounded-lg bg-surface hover:bg-surfaceHover border border-border text-[11px] text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors group"
+                    title={`Percorso: ${item.folder}`}
+                  >
+                    <span className="font-semibold text-slate-200 group-hover:text-primary-light">{item.name}</span>
+                    <span className="text-slate-500 font-mono text-[10px]">({item.completedCount}/{item.tasksCount} task)</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="text-xs font-semibold text-slate-300 block">
               Cartella Workspace di Destinazione:
