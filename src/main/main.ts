@@ -5,6 +5,7 @@ import { AutonomousScheduler } from './orchestrator/scheduler';
 import { InterviewEngine } from './orchestrator/interviewEngine';
 import { SessionWatcher } from './quota/sessionWatcher';
 import { ProjectStore } from './storage/projectStore';
+import { CycleAiMcpServer } from './mcp/cycleAiMcpServer';
 import { CycleAiSettings, SpecLockData, TaskItem, ProviderId, ExecutionLogEvent } from '../shared/types';
 
 let mainWindow: BrowserWindow | null = null;
@@ -215,6 +216,13 @@ ipcMain.handle('cycleai:get-history', async () => {
 
 app.whenReady().then(async () => {
   await quotaEngine.refreshAll();
+
+  // Auto-configure MCP loopback for Desktop apps
+  try {
+    CycleAiMcpServer.autoConfigureClientConfigs(path.join(__dirname, 'main.js'));
+  } catch {
+    // ignore
+  }
 
   // Start live background watcher for sessions
   sessionWatcher = new SessionWatcher(async () => {

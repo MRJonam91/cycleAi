@@ -3,6 +3,7 @@ import { ProviderId, TaskItem, ExecutionLogEvent, CycleAiSettings, ProviderSlotS
 import { QuotaEngine } from '../quota/quotaEngine';
 import { HandoffManager } from './handoffManager';
 import { ProcessRunner } from './processRunner';
+import { CliAdapters } from '../adapters/cliAdapters';
 
 export class AutonomousScheduler extends EventEmitter {
   private quotaEngine: QuotaEngine;
@@ -155,6 +156,22 @@ export class AutonomousScheduler extends EventEmitter {
       const stepLog = steps[i];
       task.logs.push(stepLog);
       this.emit('task-updated', task);
+
+      // On step 1 (generation), run through CLI Adapter if available
+      if (i === 1) {
+        await CliAdapters.executeWithProvider(
+          providerId,
+          model,
+          `Implementa il task ${task.id}: ${task.title}. ${task.description}`,
+          this.targetFolder,
+          (chunk) => {
+            if (chunk.trim()) {
+              task.logs.push(chunk.trim());
+              this.emit('task-updated', task);
+            }
+          }
+        );
+      }
 
       // Consume some quota
       const usageIncrement = task.complexity === 'FAST_BOILERPLATE' ? 3.5 : 8.0;

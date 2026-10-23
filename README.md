@@ -1,12 +1,24 @@
 # ⚡ CycleAI — Zero-Block AI Project Orchestrator
 
+[![Version](https://img.shields.io/badge/version-v0.3.0--beta-blueviolet.svg)](package.json)
+[![Tests: 21 Passed](https://img.shields.io/badge/tests-21%20passed-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6.svg?logo=windows)](https://microsoft.com)
 [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-pink.svg?logo=github)](https://github.com/sponsors/MRJonam91)
 [![Ko-fi](https://img.shields.io/badge/Donate-Ko--fi-F16061.svg?logo=ko-fi)](https://ko-fi.com/mrjonam91)
 [![PayPal](https://img.shields.io/badge/Donate-PayPal-00457C.svg?logo=paypal)](https://paypal.me/MRJonam91)
 
-> **CycleAI** è un'applicazione desktop per Windows progettata per portare a termine interi progetti software generati dall'AI in totale autonomia, **massimizzando al 100% gli slot di utilizzo** dei piani in abbonamento (**Claude Pro/Max**, **ChatGPT Plus/Pro / Codex**, **Google Antigravity / Gemini**), azzerando i blocchi 429 da rate-limit tramite **pausa preventiva pre-reset**, **auto-resume post-reset** e **staffetta multi-tool (Cross-Tool & Cross-Model Hand-off)**.
+> **CycleAI (v0.3.0-beta)** è un'applicazione desktop per Windows progettata per portare a termine interi progetti software generati dall'AI in totale autonomia, **massimizzando al 100% gli slot di utilizzo** dei piani in abbonamento (**Claude Pro/Max**, **ChatGPT Plus/Pro / Codex**, **Google Antigravity / Gemini**), azzerando i blocchi 429 da rate-limit tramite **pausa preventiva pre-reset**, **auto-resume post-reset**, **bridge MCP loopback per le app Desktop** e **staffetta continua (Cross-Tool & Cross-Model Hand-off)**.
+
+---
+
+## 🌟 Novità della Versione Beta (v0.3.0)
+
+- 🔌 **Loopback MCP Server Integrato (`cycleai-bridge`):** Auto-configurazione istantanea in `%APPDATA%\Claude\claude_desktop_config.json` e `.gemini/`. Claude Desktop e Antigravity Desktop possono richiedere i task e riportare l'avanzamento chiamando tool MCP nativi (`cycleai_get_active_task`, `cycleai_check_quota_status`).
+- ⚡ **CLI Adapters Reali:** Supporto per invocazione diretta dei CLI installati (`claude.cmd`, `codex.exe`, `agy`) con streaming stdout/stderr e fallback intelligente.
+- 👁️ **Session File Watcher:** Monitoraggio in tempo reale dei file di sessione `~/.codex`, `~/.claude` e `~/.gemini/antigravity/brain` con aggiornamento automatico dei gauge quota.
+- 💾 **Persistenza Stato & Storico Progetti:** Salvataggio delle preferenze e dei progetti completati in `~/.cycleai/app_state.json`.
+- 🧪 **Suite di Test con 21 Verifiche:** Copertura completa (100% pass) con Vitest per tutti i motori core.
 
 ---
 
